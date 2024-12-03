@@ -17,7 +17,7 @@ interface FormData {
 const combinationsSchema = z.object({
   sku: z.array(z.string().min(1, "SKU is required")),
   inStock: z.array(z.boolean()),
-  quantity: z.array(z.number().min(1, "Quantity cannot be zero")).optional(),
+  quantity: z.array(z.number().optional()),
 });
 
 const CombinationsForm = forwardRef((_, ref) => {
