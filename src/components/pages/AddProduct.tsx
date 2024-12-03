@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 
 const AddProduct = () => {
   const [currentStep, setCurrentStep] = useRecoilState(currentStepState);
-  const [formState, _] = useRecoilState(formStateAtom);
+  const [formState, setFormState] = useRecoilState(formStateAtom);
   const resetFormState = useResetRecoilState(formStateAtom);
   const [products, setProducts] = useRecoilState(productState);
   const descriptionFormRef = useRef<any>(null);
@@ -72,9 +72,16 @@ const AddProduct = () => {
           const isValid4 =
             Object.keys(priceInfoFormRef.current.formState.errors).length === 0;
           if (isValid4) {
+            setFormState((prev) => ({
+              ...prev,
+              priceINR: formState.priceINR,
+              discount: formState.discount,
+            }));
+
             setProducts([...products, formState]);
             console.log(formState);
             resetFormState();
+            setCurrentStep(1);
             navigate("/products");
             toast.success(
               "Product added successfully. Check console for details."

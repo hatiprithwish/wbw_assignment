@@ -52,14 +52,17 @@ const PriceInfoForm = forwardRef((_, ref) => {
       ...prev,
       priceINR: data.priceINR,
       discount: {
-        method: data.discount.method,
-        value: data.discount.value,
+        method: data.discount.method || prev.discount.method,
+        value: data.discount.value ?? prev.discount.value,
       },
     }));
   };
 
   useImperativeHandle(ref, () => ({
-    submit: handleSubmit(onSubmit),
+    submit: () => {
+      handleSubmit(onSubmit)(); // Immediately invoke the handler
+      return Object.keys(errors).length === 0;
+    },
     formState: { errors },
   }));
 
