@@ -41,6 +41,7 @@ const AddProduct = () => {
   const handleCancel = () => {
     resetFormState();
     setCurrentStep(1);
+    navigate("/products");
   };
 
   const handleNext = async () => {
