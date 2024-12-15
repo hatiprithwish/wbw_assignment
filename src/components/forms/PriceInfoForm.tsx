@@ -6,6 +6,7 @@ import { LucideBadgeIndianRupee, PercentCircle } from "lucide-react";
 import { cn } from "../../lib/tailwind";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import productState from "../../atoms/productAtom";
 
 const priceInfoSchema = z.object({
   priceINR: z.coerce
@@ -30,9 +31,11 @@ type PriceInfoFormData = z.infer<typeof priceInfoSchema>;
 
 const PriceInfoForm = forwardRef((_, ref) => {
   const [formState, setFormState] = useRecoilState(formStateAtom);
+  const [products, setProducts] = useRecoilState(productState);
 
   const {
     register,
+    watch,
     handleSubmit,
     formState: { errors },
   } = useForm<PriceInfoFormData>({
@@ -41,28 +44,25 @@ const PriceInfoForm = forwardRef((_, ref) => {
       priceINR: formState.priceINR,
       discount: {
         value: formState.discount.value,
-        method: formState.discount.method || undefined,
+        method: formState.discount.method,
       },
     },
   });
 
   const onSubmit = (data: PriceInfoFormData) => {
-    console.log(data);
     setFormState((prev) => ({
       ...prev,
       priceINR: data.priceINR,
       discount: {
-        method: data.discount.method || prev.discount.method,
-        value: data.discount.value ?? prev.discount.value,
+        value: data.discount.value,
+        method: data.discount.method,
       },
     }));
+    setProducts([...products, formState]);
   };
 
   useImperativeHandle(ref, () => ({
-    submit: () => {
-      handleSubmit(onSubmit)(); // Immediately invoke the handler
-      return Object.keys(errors).length === 0;
-    },
+    submit: handleSubmit(onSubmit),
     formState: { errors },
   }));
 
@@ -76,6 +76,7 @@ const PriceInfoForm = forwardRef((_, ref) => {
             Price (INR) <sup>*</sup>
             <input
               {...register("priceINR")}
+              value={watch("priceINR")}
               type="number"
               className={`border-[1px] border-gray-200 w-full px-4 py-2 text-black text-base rounded-md mt-2 ${
                 errors.priceINR ? "border-red-500" : ""
@@ -93,6 +94,7 @@ const PriceInfoForm = forwardRef((_, ref) => {
               Discount <sup>*</sup>
               <input
                 {...register("discount.value")}
+                value={watch("discount.value")}
                 type="number"
                 className={`border-[1px] border-gray-200 w-full px-4 py-2 text-black text-base rounded-md mt-2 ${
                   errors.discount?.value ? "border-red-500" : ""
@@ -108,34 +110,41 @@ const PriceInfoForm = forwardRef((_, ref) => {
             <div className="flex items-stretch justify-end gap-2">
               <button
                 type="button"
-                onClick={() =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    discount: {
-                      ...prev.discount,
-                      method: prev.discount.method === "pct" ? "flat" : "pct",
-                    },
-                  }))
-                }
                 className="flex items-center gap-2 border-[1px] border-gray-200 rounded-md mt-2 w-20 h-10"
               >
                 <PercentCircle
-                  // onClick={() => updateDiscountMethod("flat")}
                   className={cn(
                     formState.discount.method === "pct"
                       ? "bg-gray-200"
                       : "text-black",
                     "w-10 h-full p-1.5"
                   )}
+                  onClick={() =>
+                    setFormState((prev) => ({
+                      ...prev,
+                      discount: {
+                        ...prev.discount,
+                        method: "pct",
+                      },
+                    }))
+                  }
                 />
                 <LucideBadgeIndianRupee
-                  // onClick={() => updateDiscountMethod("flat")}
                   className={cn(
                     formState.discount.method === "flat"
                       ? "bg-gray-200"
                       : "text-black",
                     "w-10 h-full p-1.5"
                   )}
+                  onClick={() =>
+                    setFormState((prev) => ({
+                      ...prev,
+                      discount: {
+                        ...prev.discount,
+                        method: "flat",
+                      },
+                    }))
+                  }
                 />
               </button>
             </div>

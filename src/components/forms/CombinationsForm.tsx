@@ -6,6 +6,7 @@ import getUniqueCombinations from "../../utils";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
+import { cn } from "../../lib/tailwind";
 
 interface FormData {
   combinations: string[][];
@@ -27,6 +28,15 @@ const CombinationsForm = forwardRef((_, ref) => {
     () => getUniqueCombinations(formState?.variants) || [],
     [formState?.variants]
   );
+  const skus = Object.keys(formState.combinations).map(
+    (key) => formState.combinations[key].sku
+  );
+  const inStocks = Object.keys(formState.combinations).map(
+    (key) => formState.combinations[key].inStock
+  );
+  const quantities = Object.keys(formState.combinations).map(
+    (key) => formState.combinations[key].quantity
+  );
 
   const {
     handleSubmit,
@@ -38,9 +48,11 @@ const CombinationsForm = forwardRef((_, ref) => {
     resolver: zodResolver(combinationsSchema),
     defaultValues: {
       combinations: combinations.length > 0 ? combinations : [],
-      sku: Array(combinations.length).fill(""),
-      inStock: Array(combinations.length).fill(true),
-      quantity: Array(combinations.length).fill(0),
+      sku: skus.length > 0 ? skus : Array(combinations.length).fill(""),
+      inStock:
+        inStocks.length > 0 ? inStocks : Array(combinations.length).fill(true),
+      quantity:
+        quantities.length > 0 ? quantities : Array(combinations.length).fill(0),
     },
   });
 
@@ -63,6 +75,17 @@ const CombinationsForm = forwardRef((_, ref) => {
           type: "manual",
           message: "SKU must be unique",
         });
+        return;
+      }
+    });
+
+    data.sku.forEach((_, index) => {
+      if (data.inStock[index] && data.quantity[index] < 0) {
+        setError(`quantity.${index}`, {
+          type: "manual",
+          message: "Quantity must be greater than 0",
+        });
+
         return;
       }
     });
@@ -170,27 +193,35 @@ const CombinationsForm = forwardRef((_, ref) => {
           <div className="col-span-2  space-y-2">
             <label className="text-sm block h-7">Quantity</label>
             {combinations.map((_, i) => (
-              <Controller
-                key={i}
-                name={`quantity.${i}`}
-                control={control}
-                render={({ field }) => {
-                  const isInStock = inStockValues?.[i] ?? true;
-                  return (
-                    <input
-                      {...field}
-                      type="number"
-                      disabled={!isInStock}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                      className={`border-[1px] h-10 border-gray-200 w-full px-2 text-black text-base rounded-md ${
-                        !isInStock
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : ""
-                      }`}
-                    />
-                  );
-                }}
-              />
+              <div key={i}>
+                <Controller
+                  name={`quantity.${i}`}
+                  control={control}
+                  render={({ field }) => {
+                    const isInStock = inStockValues?.[i] ?? true;
+                    return (
+                      <input
+                        {...field}
+                        type="number"
+                        disabled={!isInStock}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        className={cn(
+                          "border-[1px] h-10 border-gray-200 w-full px-2 text-black text-base rounded-md",
+                          errors.quantity?.[i] ? "border-red-500" : "",
+                          !isInStock
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : ""
+                        )}
+                      />
+                    );
+                  }}
+                />
+                {errors.quantity?.[i] && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.quantity[i]?.message}
+                  </p>
+                )}
+              </div>
             ))}
           </div>
         </div>

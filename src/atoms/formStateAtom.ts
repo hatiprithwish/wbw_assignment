@@ -16,8 +16,8 @@ export type FormState = {
   };
   priceINR: number;
   discount: {
-    method: "pct" | "flat" | undefined;
-    value: number | undefined;
+    method?: "pct" | "flat";
+    value?: number;
   };
 };
 
@@ -32,7 +32,7 @@ const formState = atom<FormState>({
     combinations: {},
     priceINR: 0,
     discount: {
-      method: undefined,
+      method: "pct",
       value: 0,
     },
   },

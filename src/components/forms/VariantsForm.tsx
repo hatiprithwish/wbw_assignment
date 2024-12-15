@@ -22,6 +22,7 @@ const VariantsForm = forwardRef((_, ref) => {
   const {
     handleSubmit,
     formState: { errors },
+    setError,
   } = useForm({
     resolver: zodResolver(variantsSchema),
     defaultValues: { variants: formState.variants },
@@ -73,6 +74,9 @@ const VariantsForm = forwardRef((_, ref) => {
   const onSubmit = () => {
     if (optionData.length === 0) {
       toast.error("Please add at least one variant option");
+      setError("variants", {
+        message: "Please add at least one variant option",
+      });
       return;
     }
   };

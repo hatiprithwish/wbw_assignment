@@ -14,11 +14,11 @@ import { useNavigate } from "react-router-dom";
 
 const AddProduct = () => {
   const [currentStep, setCurrentStep] = useRecoilState(currentStepState);
-  const [formState, setFormState] = useRecoilState(formStateAtom);
+  const [formState, _] = useRecoilState(formStateAtom);
   const resetFormState = useResetRecoilState(formStateAtom);
   const [products, setProducts] = useRecoilState(productState);
   const descriptionFormRef = useRef<any>(null);
-  const variantsFormRef = useRef<{ submit: () => boolean }>(null);
+  const variantsFormRef = useRef<any>(null);
   const combinationsFormRef = useRef<any>(null);
   const priceInfoFormRef = useRef<any>(null);
   const navigate = useNavigate();
@@ -57,7 +57,12 @@ const AddProduct = () => {
           }
           break;
         case 2:
-          setCurrentStep(currentStep + 1);
+          await variantsFormRef.current.submit();
+          const isValid2 =
+            Object.keys(variantsFormRef.current.formState.errors).length === 0;
+          if (isValid2) {
+            setCurrentStep(currentStep + 1);
+          }
           break;
         case 3:
           await combinationsFormRef.current.submit();
@@ -73,19 +78,16 @@ const AddProduct = () => {
           const isValid4 =
             Object.keys(priceInfoFormRef.current.formState.errors).length === 0;
           if (isValid4) {
-            setFormState((prev) => ({
-              ...prev,
-              priceINR: formState.priceINR,
-              discount: formState.discount,
-            }));
-
             setProducts([...products, formState]);
-            console.log(formState);
             resetFormState();
             setCurrentStep(1);
             navigate("/products");
             toast.success(
               "Product added successfully. Check console for details."
+            );
+            console.log(
+              "Detailed formState:",
+              JSON.stringify(formState, null, 2)
             );
           }
           break;

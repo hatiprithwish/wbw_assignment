@@ -2,9 +2,18 @@ import { ChevronRight } from "lucide-react";
 import { cn } from "../../lib/tailwind";
 import currentStepState from "../../atoms/currentStepAtom";
 import { useRecoilState } from "recoil";
+import toast from "react-hot-toast";
 
 const FormProgress = () => {
   const [currentStep, setCurrentStep] = useRecoilState(currentStepState);
+  const handleClick = (currentIndex: number, currentStep: number) => {
+    if (currentIndex + 1 > currentStep) {
+      toast.error("Please submit existing form first");
+    } else {
+      setCurrentStep(currentIndex + 1);
+    }
+  };
+
   return (
     <div className="flex gap-2 text-sm font-medium text-gray-400">
       {["Description", "Variants", "Combinations", "Price Info"].map(
@@ -12,7 +21,7 @@ const FormProgress = () => {
           <div
             key={i}
             className="flex gap-3 items-center"
-            onClick={() => setCurrentStep(i + 1)}
+            onClick={() => handleClick(i, currentStep)}
           >
             <span
               className={cn(
